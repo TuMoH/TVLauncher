@@ -1,6 +1,5 @@
 package com.androidtim.tvlauncher
 
-import android.os.AsyncTask
 import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
@@ -8,11 +7,11 @@ import android.view.ViewGroup
 import android.view.animation.DecelerateInterpolator
 import android.widget.ImageView
 import android.widget.TextView
-import java.lang.ref.WeakReference
 
 class Adapter(
     val data: List<AppInfo>,
     private val itemClickListener: (position: Int) -> Unit,
+    private val itemLongClickListener: ((position: Int) -> Unit)? = null,
     private val showAddButton: Boolean = false,
     private val addClickListener: (() -> Unit)? = null
 ) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
@@ -96,6 +95,7 @@ class Adapter(
 
         init {
             itemView.setOnClickListener { itemClickListener(adapterPosition) }
+            itemView.setOnLongClickListener { itemLongClickListener?.invoke(adapterPosition); true }
         }
     }
 

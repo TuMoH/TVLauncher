@@ -1,4 +1,7 @@
 <resources>
     <string name="app_name">TVLauncher</string>
     <string name="choose_app">Choose app</string>
+    <string name="move">Move</string>
+    <string name="remove">Remove</string>
+    <string name="uninstall">Uninstall</string>
 </resources>

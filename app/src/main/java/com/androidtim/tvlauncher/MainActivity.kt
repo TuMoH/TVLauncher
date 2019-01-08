@@ -6,18 +6,20 @@ import android.app.AlertDialog
 import android.content.Intent
 import android.content.SharedPreferences
 import android.graphics.drawable.Drawable
+import android.net.Uri
 import android.os.Bundle
 import android.preference.PreferenceManager
 import android.support.v7.widget.GridLayoutManager
 import android.support.v7.widget.RecyclerView
 import android.text.TextUtils
 import android.view.LayoutInflater
+import android.widget.Button
 import kotlinx.android.synthetic.main.activity_main.*
 import java.util.*
 
 
 // todo clock
-// todo remove, uninstall, move items
+// todo move items
 class MainActivity : Activity() {
 
     companion object {
@@ -42,6 +44,34 @@ class MainActivity : Activity() {
                     )
                 } catch (e: Exception) {
                 }
+            },
+            itemLongClickListener = { position ->
+                val appInfo = favorites[position]
+                var menuDialog: AlertDialog? = null
+
+                val dialogView = LayoutInflater.from(this).inflate(R.layout.item_menu_dialog, null)
+                dialogView.findViewById<Button>(R.id.move).setOnClickListener {
+                    menuDialog?.dismiss()
+                }
+                dialogView.findViewById<Button>(R.id.remove).setOnClickListener {
+                    favorites.remove(appInfo)
+                    recycler.adapter?.notifyDataSetChanged()
+                    PreferenceManager.getDefaultSharedPreferences(this)
+                        .putStringList(FAVORITES_KEY, favorites.map { it.packageName })
+                    menuDialog?.dismiss()
+                }
+                dialogView.findViewById<Button>(R.id.uninstall).setOnClickListener {
+                    startActivity(
+                        Intent(Intent.ACTION_DELETE, Uri.parse("package:${appInfo.packageName}"))
+                    )
+                    menuDialog?.dismiss()
+                }
+
+                menuDialog = AlertDialog.Builder(this)
+                    .setView(dialogView)
+                    .setTitle(appInfo.name)
+                    .create()
+                menuDialog.show()
             },
             showAddButton = true,
             addClickListener = {
