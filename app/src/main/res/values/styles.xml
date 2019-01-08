@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="AppTheme" parent="android:Theme.Material.NoActionBar">
+        <item name="android:colorPrimary">#FF1B1C1E</item>
+        <item name="android:colorPrimaryDark">#FF263238</item>
+        <item name="android:colorAccent">#FF51AAFF</item>
+        <item name="android:windowOverscan">true</item>
+    </style>
+
+    <style name="ItemCardView">
+        <item name="android:layout_height">100dp</item>
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_margin">10dp</item>
+        <item name="android:focusable">true</item>
+        <item name="android:clickable">true</item>
+    </style>
+
+</resources>
