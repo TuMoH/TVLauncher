@@ -15,6 +15,9 @@ import android.view.LayoutInflater
 import kotlinx.android.synthetic.main.activity_main.*
 import java.util.*
 
+
+// todo clock
+// todo remove, uninstall, move items
 class MainActivity : Activity() {
 
     companion object {
