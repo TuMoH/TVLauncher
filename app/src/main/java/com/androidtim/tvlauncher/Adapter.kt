@@ -13,17 +13,19 @@ class Adapter(
     private val itemClickListener: (position: Int) -> Unit,
     private val itemLongClickListener: ((position: Int) -> Unit)? = null,
     private val showAddButton: Boolean = false,
+    private val showNames: Boolean = false,
+    private val cropIcons: Boolean = false,
     private val addClickListener: (() -> Unit)? = null
 ) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     companion object {
         const val FOCUSED_VIEW_Z = 12f
         const val FOCUSED_VIEW_SCALE = 1.2f
-        const val DURATION_IN = 120L
+        const val DURATION_IN = 150L
 
         const val DEFAULT_VIEW_Z = 5f
         const val DEFAULT_VIEW_SCALE = 1f
-        const val DURATION_OUT = 100L
+        const val DURATION_OUT = 120L
 
         val INTERPOLATOR = DecelerateInterpolator()
     }
@@ -59,8 +61,15 @@ class Adapter(
         if (viewHolder is ItemViewHolder) {
             val appInfo = data[position]
 
-            viewHolder.nameView.text = appInfo.name
             viewHolder.iconView.setImageDrawable(appInfo.icon)
+            viewHolder.iconView.scaleType =
+                    if (cropIcons && appInfo.icon != null && appInfo.icon.intrinsicWidth > 200) ImageView.ScaleType.CENTER_CROP
+                    else ImageView.ScaleType.CENTER_INSIDE
+
+            if (showNames) {
+                viewHolder.iconView.setPadding(0, 0, 0, 40)
+                viewHolder.nameView.text = appInfo.name
+            }
         }
     }
 
@@ -96,6 +105,8 @@ class Adapter(
         init {
             itemView.setOnClickListener { itemClickListener(adapterPosition) }
             itemView.setOnLongClickListener { itemLongClickListener?.invoke(adapterPosition); true }
+
+            nameView.visibility = if (showNames) View.VISIBLE else View.GONE
         }
     }
 

@@ -18,6 +18,9 @@ import kotlinx.android.synthetic.main.activity_main.*
 import java.util.*
 import java.text.SimpleDateFormat
 
+// todo wifi
+// todo settings
+// todo backpressed
 class MainActivity : Activity() {
 
     companion object {
@@ -31,7 +34,7 @@ class MainActivity : Activity() {
         setContentView(R.layout.activity_main)
 
         val favorites = findFavorites().toMutableList()
-        recycler.layoutManager = GridLayoutManager(this, 4)
+        recycler.layoutManager = GridLayoutManager(this, 5)
         recycler.adapter = Adapter(
             data = favorites,
             itemClickListener = { position ->
@@ -49,6 +52,7 @@ class MainActivity : Activity() {
                 var menuDialog: AlertDialog? = null
 
                 val dialogView = LayoutInflater.from(this).inflate(R.layout.item_menu_dialog, null)
+                // todo scale button on focus
                 dialogView.findViewById<Button>(R.id.move).setOnClickListener {
                     // todo move items
                     menuDialog?.dismiss()
@@ -64,6 +68,7 @@ class MainActivity : Activity() {
                     startActivity(
                         Intent(Intent.ACTION_DELETE, Uri.parse("package:${appInfo.packageName}"))
                     )
+                    // todo filter favorites after returns
                     menuDialog?.dismiss()
                 }
 
@@ -74,18 +79,20 @@ class MainActivity : Activity() {
                 menuDialog.show()
             },
             showAddButton = true,
+            cropIcons = true,
             addClickListener = {
                 val allApps = findAllApplications()
                     .filter { appInfo -> favorites.find { it.packageName == appInfo.packageName } == null }
 
                 val dialogView = LayoutInflater.from(this).inflate(R.layout.add_app_dialog, null)
                 val dialogRecycler = dialogView.findViewById<RecyclerView>(R.id.recycler)
-                dialogRecycler.layoutManager = GridLayoutManager(this, 4)
+                dialogRecycler.layoutManager = GridLayoutManager(this, 3)
 
                 var dialog: AlertDialog? = null
 
                 dialogRecycler.adapter = Adapter(
                     data = allApps,
+                    showNames = true,
                     itemClickListener = { position ->
                         val appInfo = allApps[position]
                         favorites.add(appInfo)
@@ -151,13 +158,13 @@ class MainActivity : Activity() {
     private fun loadIcon(packageName: String): Drawable? {
         var result: Drawable? = null
         try {
-            result = packageManager.getApplicationBanner(packageName)
+            result = packageManager.getActivityBanner(packageManager.getLeanbackLaunchIntentForPackage(packageName))
         } catch (e: Exception) {
         }
 
         if (result == null) {
             try {
-                result = packageManager.getApplicationIcon(packageName)
+                result = packageManager.getActivityIcon(packageManager.getLaunchIntentForPackage(packageName))
             } catch (e: Exception) {
             }
         }
@@ -206,19 +213,3 @@ class MainActivity : Activity() {
     }
 
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
