@@ -4,26 +4,25 @@ import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.AlertDialog
 import android.content.Intent
-import android.content.SharedPreferences
 import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.preference.PreferenceManager
 import android.support.v7.widget.GridLayoutManager
 import android.support.v7.widget.RecyclerView
-import android.text.TextUtils
 import android.view.LayoutInflater
 import android.widget.Button
 import kotlinx.android.synthetic.main.activity_main.*
 import java.util.*
+import java.text.SimpleDateFormat
 
-
-// todo clock
-// todo move items
 class MainActivity : Activity() {
 
     companion object {
         const val FAVORITES_KEY = "FAVORITES_KEY"
+        val CLOCK_FORMAT = SimpleDateFormat("HH.mm", Locale.ENGLISH)
     }
 
     @SuppressLint("InflateParams")
@@ -51,13 +50,14 @@ class MainActivity : Activity() {
 
                 val dialogView = LayoutInflater.from(this).inflate(R.layout.item_menu_dialog, null)
                 dialogView.findViewById<Button>(R.id.move).setOnClickListener {
+                    // todo move items
                     menuDialog?.dismiss()
                 }
                 dialogView.findViewById<Button>(R.id.remove).setOnClickListener {
                     favorites.remove(appInfo)
                     recycler.adapter?.notifyDataSetChanged()
                     PreferenceManager.getDefaultSharedPreferences(this)
-                        .putStringList(FAVORITES_KEY, favorites.map { it.packageName })
+                        .putStringList(FAVORITES_KEY, favorites.map { favorite -> favorite.packageName })
                     menuDialog?.dismiss()
                 }
                 dialogView.findViewById<Button>(R.id.uninstall).setOnClickListener {
@@ -102,6 +102,16 @@ class MainActivity : Activity() {
                 dialog.show()
             }
         )
+    }
+
+    override fun onResume() {
+        super.onResume()
+        startClock()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        pauseClock()
     }
 
     private fun findFavorites(): List<AppInfo> {
@@ -170,17 +180,30 @@ class MainActivity : Activity() {
         )
     }
 
-    private fun SharedPreferences.getStringList(key: String): List<String> {
-        return TextUtils.split(getString(key, ""), "‚‗‚").toList()
+    private fun startClock() {
+        clockRunnable.run()
     }
 
-    private fun SharedPreferences.putStringList(key: String, value: List<String>) {
-        edit().putString(
-            key,
-            TextUtils.join("‚‗‚", value.toTypedArray())
-        ).apply()
+    private fun pauseClock() {
+        handler.removeCallbacks(clockRunnable)
     }
 
+    private val handler = Handler(Looper.getMainLooper())
+    private val clockRunnable = ClockRunnable()
+
+    inner class ClockRunnable : Runnable {
+        override fun run() {
+            val date = Date()
+            clock_view.text = CLOCK_FORMAT.format(date)
+
+            val currentTime = date.time
+            date.seconds = 0
+            date.minutes = date.minutes + 1
+            val delay = date.time - currentTime
+            handler.postDelayed(this, if (delay >= 0) delay else 0)
+        }
+
+    }
 
 }
 

@@ -10,7 +10,7 @@
     <style name="ItemCardView">
         <item name="android:layout_height">100dp</item>
         <item name="android:layout_width">match_parent</item>
-        <item name="android:layout_margin">10dp</item>
+        <item name="android:layout_margin">7dp</item>
         <item name="android:focusable">true</item>
         <item name="android:clickable">true</item>
     </style>
