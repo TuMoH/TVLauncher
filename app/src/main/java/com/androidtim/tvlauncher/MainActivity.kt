@@ -22,7 +22,7 @@ class MainActivity : Activity() {
 
     companion object {
         const val FAVORITES_KEY = "FAVORITES_KEY"
-        val CLOCK_FORMAT = SimpleDateFormat("HH.mm", Locale.ENGLISH)
+        val CLOCK_FORMAT = SimpleDateFormat("HH:mm", Locale.ENGLISH)
     }
 
     @SuppressLint("InflateParams")

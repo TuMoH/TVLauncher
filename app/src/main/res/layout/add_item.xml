@@ -5,7 +5,7 @@
 
     <ImageView
             android:src="@android:drawable/ic_input_add"
-            android:tint="#fff"
+            android:tint="#dfdfdf"
             android:layout_gravity="center"
             android:layout_width="50dp"
             android:layout_height="50dp"/>
