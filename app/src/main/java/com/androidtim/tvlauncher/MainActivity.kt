@@ -22,6 +22,7 @@ import java.text.SimpleDateFormat
 // todo wifi
 // todo settings
 // todo backpressed
+// todo activity launch animation
 // todo widgets?
 class MainActivity : Activity() {
 
@@ -36,7 +37,6 @@ class MainActivity : Activity() {
     private lateinit var favorites: MutableList<AppInfo>
     private var appInfoForCheckOnResume: AppInfo? = null
 
-    @SuppressLint("InflateParams")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -64,6 +64,7 @@ class MainActivity : Activity() {
         pauseClock()
     }
 
+    @SuppressLint("InflateParams")
     private fun initRecycler() {
         recycler.layoutManager = GridLayoutManager(this, 5)
         recycler.adapter = Adapter(
@@ -221,6 +222,7 @@ class MainActivity : Activity() {
         handler.removeCallbacks(clockRunnable)
     }
 
+    @Suppress("DEPRECATION")
     inner class ClockRunnable : Runnable {
         override fun run() {
             val date = Date()
