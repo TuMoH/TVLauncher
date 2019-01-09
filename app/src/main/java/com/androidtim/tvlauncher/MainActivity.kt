@@ -22,6 +22,7 @@ import java.text.SimpleDateFormat
 // todo wifi
 // todo settings
 // todo backpressed
+// todo widgets?
 class MainActivity : Activity() {
 
     companion object {
@@ -50,6 +51,7 @@ class MainActivity : Activity() {
         startClock()
 
         val finalAppInfoForCheckOnResume = appInfoForCheckOnResume
+        appInfoForCheckOnResume = null
         if (finalAppInfoForCheckOnResume != null) {
             if (findAllApplications().find { it.packageName == finalAppInfoForCheckOnResume.packageName } == null) {
                 removeFromFavorites(finalAppInfoForCheckOnResume)
