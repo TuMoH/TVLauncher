@@ -12,6 +12,7 @@ import android.os.Looper
 import android.preference.PreferenceManager
 import android.support.v7.widget.GridLayoutManager
 import android.support.v7.widget.RecyclerView
+import android.util.Log
 import android.view.LayoutInflater
 import android.widget.Button
 import kotlinx.android.synthetic.main.activity_main.*
@@ -28,23 +29,53 @@ class MainActivity : Activity() {
         val CLOCK_FORMAT = SimpleDateFormat("HH:mm", Locale.ENGLISH)
     }
 
+    private val handler = Handler(Looper.getMainLooper())
+    private val clockRunnable = ClockRunnable()
+
+    private lateinit var favorites: MutableList<AppInfo>
+    private var appInfoForCheckOnResume: AppInfo? = null
+
     @SuppressLint("InflateParams")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        val favorites = findFavorites().toMutableList()
+        favorites = findFavorites().toMutableList()
+
+        initRecycler()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        startClock()
+
+        val finalAppInfoForCheckOnResume = appInfoForCheckOnResume
+        if (finalAppInfoForCheckOnResume != null) {
+            if (findAllApplications().find { it.packageName == finalAppInfoForCheckOnResume.packageName } == null) {
+                removeFromFavorites(finalAppInfoForCheckOnResume)
+            }
+        }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        pauseClock()
+    }
+
+    private fun initRecycler() {
         recycler.layoutManager = GridLayoutManager(this, 5)
         recycler.adapter = Adapter(
             data = favorites,
             itemClickListener = { position ->
+                val packageName = favorites[position].packageName
+                var intent = packageManager.getLeanbackLaunchIntentForPackage(packageName)
+                if (intent == null) {
+                    intent = packageManager.getLaunchIntentForPackage(packageName)
+                }
                 try {
-                    startActivity(
-                        packageManager.getLaunchIntentForPackage(
-                            favorites[position].packageName
-                        )
-                    )
+                    startActivity(intent)
                 } catch (e: Exception) {
+                    Log.e("TVLauncher", "unable to start activity", e)
                 }
             },
             itemLongClickListener = { position ->
@@ -52,23 +83,19 @@ class MainActivity : Activity() {
                 var menuDialog: AlertDialog? = null
 
                 val dialogView = LayoutInflater.from(this).inflate(R.layout.item_menu_dialog, null)
-                // todo scale button on focus
                 dialogView.findViewById<Button>(R.id.move).setOnClickListener {
                     // todo move items
                     menuDialog?.dismiss()
                 }
                 dialogView.findViewById<Button>(R.id.remove).setOnClickListener {
-                    favorites.remove(appInfo)
-                    recycler.adapter?.notifyDataSetChanged()
-                    PreferenceManager.getDefaultSharedPreferences(this)
-                        .putStringList(FAVORITES_KEY, favorites.map { favorite -> favorite.packageName })
+                    removeFromFavorites(appInfo)
                     menuDialog?.dismiss()
                 }
                 dialogView.findViewById<Button>(R.id.uninstall).setOnClickListener {
                     startActivity(
                         Intent(Intent.ACTION_DELETE, Uri.parse("package:${appInfo.packageName}"))
                     )
-                    // todo filter favorites after returns
+                    appInfoForCheckOnResume = appInfo
                     menuDialog?.dismiss()
                 }
 
@@ -109,16 +136,6 @@ class MainActivity : Activity() {
                 dialog.show()
             }
         )
-    }
-
-    override fun onResume() {
-        super.onResume()
-        startClock()
-    }
-
-    override fun onPause() {
-        super.onPause()
-        pauseClock()
     }
 
     private fun findFavorites(): List<AppInfo> {
@@ -187,6 +204,13 @@ class MainActivity : Activity() {
         )
     }
 
+    private fun removeFromFavorites(appInfo: AppInfo) {
+        favorites.remove(appInfo)
+        recycler.adapter?.notifyDataSetChanged()
+        PreferenceManager.getDefaultSharedPreferences(this)
+            .putStringList(FAVORITES_KEY, favorites.map { favorite -> favorite.packageName })
+    }
+
     private fun startClock() {
         clockRunnable.run()
     }
@@ -194,9 +218,6 @@ class MainActivity : Activity() {
     private fun pauseClock() {
         handler.removeCallbacks(clockRunnable)
     }
-
-    private val handler = Handler(Looper.getMainLooper())
-    private val clockRunnable = ClockRunnable()
 
     inner class ClockRunnable : Runnable {
         override fun run() {
