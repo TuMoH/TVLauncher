@@ -10,6 +10,7 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.preference.PreferenceManager
+import android.provider.Settings
 import android.support.v7.widget.GridLayoutManager
 import android.support.v7.widget.RecyclerView
 import android.util.Log
@@ -19,8 +20,7 @@ import kotlinx.android.synthetic.main.activity_main.*
 import java.util.*
 import java.text.SimpleDateFormat
 
-// todo wifi
-// todo settings
+// todo wifi settings
 // todo backpressed
 // todo activity launch animation
 // todo widgets?
@@ -64,6 +64,9 @@ class MainActivity : Activity() {
         pauseClock()
     }
 
+    override fun onBackPressed() {
+    }
+
     @SuppressLint("InflateParams")
     private fun initRecycler() {
         recycler.layoutManager = GridLayoutManager(this, 5)
@@ -75,6 +78,14 @@ class MainActivity : Activity() {
                 if (intent == null) {
                     intent = packageManager.getLaunchIntentForPackage(packageName)
                 }
+                if (intent == null) {
+                    intent = Intent(Settings.ACTION_SETTINGS)
+                    intent.`package` = packageName
+                }
+//                if (intent == null) {
+//                    intent = Intent(Settings.ACTION_WIFI_SETTINGS)
+//                    intent.`package` = packageName
+//                }
                 try {
                     startActivity(intent)
                 } catch (e: Exception) {
@@ -151,25 +162,38 @@ class MainActivity : Activity() {
         val processedPackages = ArrayList<String>()
         val entries = ArrayList<AppInfo>()
 
-        val leanbackIntent = Intent(Intent.ACTION_MAIN, null).addCategory(Intent.CATEGORY_LEANBACK_LAUNCHER)
-        packageManager.queryIntentActivities(leanbackIntent, 0)
-            .forEach { resolveInfo ->
-                val appPackageName = resolveInfo.activityInfo.packageName
-                if (packageName != appPackageName) {
-                    processedPackages.add(appPackageName)
-
-                    entries.add(getAppInfo(appPackageName))
-                }
+        packageManager.queryIntentActivities(
+            Intent(Intent.ACTION_MAIN, null).addCategory(Intent.CATEGORY_LEANBACK_LAUNCHER), 0
+        ).forEach { resolveInfo ->
+            val appPackageName = resolveInfo.activityInfo.packageName
+            if (packageName != appPackageName) {
+                processedPackages.add(appPackageName)
+                entries.add(getAppInfo(appPackageName))
             }
-
-        val launcherIntent = Intent(Intent.ACTION_MAIN, null).addCategory(Intent.CATEGORY_LAUNCHER)
-        packageManager.queryIntentActivities(launcherIntent, 0)
-            .forEach { resolveInfo ->
-                val appPackageName = resolveInfo.activityInfo.packageName
-                if (packageName != appPackageName && !processedPackages.contains(resolveInfo.activityInfo.packageName)) {
-                    entries.add(getAppInfo(appPackageName))
-                }
+        }
+        packageManager.queryIntentActivities(
+            Intent(Intent.ACTION_MAIN, null).addCategory(Intent.CATEGORY_LAUNCHER), 0
+        ).forEach { resolveInfo ->
+            val appPackageName = resolveInfo.activityInfo.packageName
+            if (packageName != appPackageName && !processedPackages.contains(appPackageName)) {
+                processedPackages.add(appPackageName)
+                entries.add(getAppInfo(appPackageName))
             }
+        }
+        packageManager.queryIntentActivities(
+            Intent(Settings.ACTION_SETTINGS), 0
+        ).forEach { resolveInfo ->
+            val appPackageName = resolveInfo.activityInfo.packageName
+            if (packageName != appPackageName && !processedPackages.contains(appPackageName)) {
+                processedPackages.add(appPackageName)
+                entries.add(getAppInfo(appPackageName))
+            }
+        }
+//        packageManager.queryIntentActivities(
+//            Intent(Settings.ACTION_WIFI_SETTINGS), 0
+//        ).forEach { resolveInfo ->
+//            entries.add(getAppInfo(resolveInfo.activityInfo.packageName))
+//        }
 
         entries.sortBy { appInfo -> appInfo.name }
         return entries
@@ -181,10 +205,21 @@ class MainActivity : Activity() {
             result = packageManager.getActivityBanner(packageManager.getLeanbackLaunchIntentForPackage(packageName))
         } catch (e: Exception) {
         }
-
+        if (result == null) {
+            try {
+                result = packageManager.getApplicationBanner(packageName)
+            } catch (e: Exception) {
+            }
+        }
         if (result == null) {
             try {
                 result = packageManager.getActivityIcon(packageManager.getLaunchIntentForPackage(packageName))
+            } catch (e: Exception) {
+            }
+        }
+        if (result == null) {
+            try {
+                result = packageManager.getApplicationIcon(packageName)
             } catch (e: Exception) {
             }
         }
